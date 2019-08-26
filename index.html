@@ -1,0 +1,423 @@
+<!doctype html>
+<html>
+	<head>
+		<title>HOME | Monitoring BPM</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+		<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/5.10.1/firebase.js"></script>
+		<script src="https://code.highcharts.com/highcharts.js"></script>
+		<script src="https://code.highcharts.com/modules/exporting.js"></script>
+		<script src="https://code.highcharts.com/modules/export-data.js"></script>
+		<style>
+			@import url('https://fonts.googleapis.com/css?family=Aldrich&display=swap');
+			@import url('https://fonts.googleapis.com/css?family=Hepta+Slab&display=swap');
+			.body {
+				margin: 0;
+				display: block;
+				color: #000000;
+				background: #ffffff;
+				font-family: 'Hepta Slab', serif;
+				font-variant: small-caps;
+				font-size: 11pt;
+			}
+			.grid-container {
+				display: grid;
+				width: 100%;
+				height: 100%;
+				grid-template-columns: 40% 60%;
+				grid-template-rows: 75px auto auto;
+				grid-template-areas:
+					'headers headers'
+					'section article'
+					'footers footers';
+				grid-gap: 0px 0px;
+			}
+			.headers {
+				grid-area: headers;
+				width: 100%;
+				height: 100%;
+				display: flex;
+				flex-flow: row;
+				align-items: center;
+				box-shadow: 2px 2px 10px #000099;
+				background: linear-gradient(to right, #0000ff 0%, #ff99ff 100%);
+			}
+			.headers span:nth-child(1) {
+				width: 100%;
+				margin-left: 45px;
+				display: flex;
+				justify-content: flex-start;
+				font-weight: bolder;
+				font-size: 24px;
+				font-family: 'Aldrich', sans-serif;
+				font-variant: small-caps;
+				text-decoration: underline;
+			}
+			.headers span:nth-child(2) {
+				width: 100%;
+				margin-right: 45px;
+				display: flex;
+				justify-content: flex-end;
+			}
+			.section {
+				grid-area: section;
+				background: #f2f2f2;
+				margin: 15px auto;
+				width: 95%;
+				height: 95%;
+				border-radius: 10px;
+				box-shadow: 2px 2px 10px #bfbfbf;
+			}
+			.section table {
+				margin: 10px;
+			}
+			.article {
+				grid-area: article;
+				background: #f2f2f2;
+				margin: 15px auto;
+				width: 97%;
+				height: 95%;
+				border-radius: 10px;
+				box-shadow: 2px 2px 10px #bfbfbf;
+			}
+			.article #container {
+				width: 100%;
+				height: 100%;
+			}
+			.footers {
+				grid-area: footers;
+				width: 100%;
+				margin: 15px auto 0 auto;
+				color: #ffffff;
+				background: #003399;
+				box-shadow: 5px 0px 10px #000099;
+				display: flex;
+				flex-flow: wrap;
+				text-align: center;
+				font-size: 10pt;
+				font-weight: bolder;
+				bottom: 0;
+				position: fixed;
+			}
+			.footers span:nth-child(1) {
+				width: 100%;
+				margin: 10px 0 0 0;
+			}
+			.footers span:nth-child(2) {
+				width: 100%;
+				margin: 0 0 10px 0;
+			}
+			.dropbtn {
+				background-color: #3498DB;
+				color: #000000;
+				font-size: 16px;
+				border: none;
+				cursor: pointer;
+				padding: 10px;
+				border-radius: 15px;
+				font-family: 'Aldrich', sans-serif;
+			}
+			.dropbtn:hover, .dropbtn:focus {
+				background-color: #2980B9;
+			}
+			.dropdown-menu {
+				position: relative;
+				display: inline-block;
+			}
+			.dropdown-content {
+				display: none;
+				position: absolute;
+				background-color: #f1f1f1;
+				min-width: 160px;
+				overflow: auto;
+				box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+				border-radius: 12px;
+				z-index: 1;
+			}
+			.dropdown-content a {
+				color: black;
+				padding: 12px 16px;
+				text-decoration: none;
+				display: block;
+			}
+			.dropdown-content a:hover {
+				background-color: #999999;
+			}
+			.dropdown a:hover {
+				background-color: #ddd;
+			}
+			.show {
+				display: block;
+			}
+			.highcharts-exporting-group {
+				visibility: hidden;
+				display: none;
+			}
+			@media (min-width: 120px) and (max-width: 767px) {
+				.grid-container {
+					display: grid;
+					width: 100%;
+					height: 100%;
+					grid-template-columns: 100%;
+					grid-template-rows: auto auto 275px auto;
+					grid-template-areas:
+						'headers'
+						'section'
+						'article'
+						'footers';
+					grid-gap: 0px 0px;
+				}
+				.headers {
+					display: flex;
+					flex-flow: wrap;
+					align-items: center;
+					justify-content: center;
+				}
+				.headers span:nth-child(1) {
+					font-size: 14pt;
+					width: 100%;
+					margin: 15px 0;
+					display: flex;
+					justify-content: center;
+				}
+				.headers span:nth-child(2) {
+					font-size: 12pt;
+					width: 100%;
+					margin: 0 0 0 0;
+					display: flex;
+					justify-content: center;
+				}
+				.dropdown-menu {
+					width: 100%;
+					display: flex;
+				}
+				.dropbtn {
+					width: 100%;
+					padding: 5px;
+					border-radius: 0;
+				}
+				.article {
+					width: 95%;
+				}
+				.footers {
+					bottom: auto;
+					position: static;
+				}
+			}
+			@media (min-width: 768px) and (max-width: 1024px) {				
+				.grid-container {
+					display: grid;
+					width: 100%;
+					height: 100%;
+					grid-template-columns: 50% 50%;
+					grid-template-rows: 75px auto auto;
+					grid-template-areas:
+						'headers headers'
+						'section article'
+						'footers footers';
+					grid-gap: 0px 0px;
+				}
+				.article {
+					width: 95%;
+				}
+			}
+			
+		</style>
+	</head>
+	<body class="body">
+		<div class="grid-container">
+			<div class="headers">
+				<span>HOME | Monitoring BPM</span>
+				<span>
+					<div class="dropdown-menu">
+						<button onclick="dropFunction()" class="dropbtn">Pilih Koresponden</button>
+						<div id="dropdown" class="dropdown-content">
+							<a onclick="select1()">0x01</a>
+							<a onclick="select2()">0x02</a>
+							<a onclick="select3()">0x03</a>
+							<a onclick="select4()">0x04</a>
+							<a onclick="select5()">0x05</a>
+						</div>
+					</div>
+				</span>
+			</div>
+			<div class="section">
+				<table>
+					<tr><td>Nama (Inisial)</td><td>&nbsp;:&nbsp;</td><td id="nama">0</td></tr>
+					<tr><td>Umur (Tahun)</td><td>&nbsp;:&nbsp;</td><td id="umur">0</td></tr>
+					<tr><td>Berat (Kg)</td><td>&nbsp;:&nbsp;</td><td id="berat">0</td></tr>
+					<tr><td>Tinggi (Cm)</td><td>&nbsp;:&nbsp;</td><td id="tinggi">0</td></tr>
+					<tr><td>Jenis Kelamin</td><td>&nbsp;:&nbsp;</td><td id="kelamin">0</td></tr>
+					<tr><td>Bets Per Menit (BPM)</td><td>&nbsp;:&nbsp;</td><td id="bpm">0</td></tr>
+					<tr><td>Kondisi Jantung (Identifikasi)</td><td>&nbsp;:&nbsp;</td><td id="kondisi">0</td></tr>
+				</table>
+			</div>
+			<div class="article">
+				<div id="container"></div>
+			</div>
+			<div class="footers">
+				<span>&copy2019 RIA HARIRI</span>
+				<span>Teknik Elektro | UNIBA-Banyuwangi</span>
+			</div>
+		</div>
+		<script>
+			var firebaseConfig = {
+				apiKey: "AIzaSyAY3wZcDYU2jKb3GSU42ndDZMfCjFHe8H0",
+				authDomain: "bpm-data.firebaseapp.com",
+				databaseURL: "https://bpm-data.firebaseio.com",
+				projectId: "bpm-data",
+				storageBucket: "",
+				messagingSenderId: "658770461193",
+				appId: "1:658770461193:web:5c37c44c62fc535f"
+			};
+			firebase.initializeApp(firebaseConfig);
+			function dropFunction() {
+				document.getElementById('dropdown').classList.toggle('show');
+			}
+			window.onclick = function(event) {
+				if (!event.target.matches('.dropbtn')) {
+					var dropdowns = document.getElementsByClassName('dropdown-content'), i;
+					for (i = 0; i < dropdowns.length; i++) {
+						var openDropdown = dropdowns[i];
+						if (openDropdown.classList.contains('show')) {
+							openDropdown.classList.remove('show');
+						}
+					}
+				}
+			}
+			var state = 0, type = '0x01', t_data = [];
+			var data = [], str = {0:'/a_nama', 1:'/a_umur', 2:'/a_berat', 3:'/a_tinggi', 4:'/a_kelamin'};
+			function select1() {type = '0x01'; state = 0;}
+			function select2() {type = '0x02'; state = 0;}
+			function select3() {type = '0x03'; state = 0;}
+			function select4() {type = '0x04'; state = 0;}
+			function select5() {type = '0x05'; state = 0;}
+			setInterval(function() {
+				let t = 0, i = 0;
+				if (state == 0) {
+					$.getJSON('https://bpm-data.firebaseio.com/' + type + '.json', function (data) {
+						let cdata = JSON.stringify(data);
+						for (t = 0; Object.keys(data)[t] != undefined; t++) {
+							t_data = [];
+						}
+						for (i = 0; i < t - 5; i++) {
+							var key = Object.keys(data)[i];
+							firebase.database().ref().child(type + '/' + key + '/bpm/0').once('value', snap => t_data.push([snap.val()]));
+						}
+					});
+				}
+				if (state < 6) {
+					for (let i = 0; i < 5; i ++) {
+						firebase.database().ref().child(type + str[i]).on('value', snap => data[i] = snap.val());
+					}
+					$('.section table tr td#nama').text(data[0]);
+					$('.section table tr td#umur').text(data[1]);
+					$('.section table tr td#berat').text(data[2]);
+					$('.section table tr td#tinggi').text(data[3]);
+					$('.section table tr td#kelamin').text(data[4]);
+					$('.section table tr td#bpm').text(t_data[i]);
+					$('.section table tr td#kondisi').text('Normal');
+					draw_charts(t_data);
+				}
+				state ++;
+			}, 500);
+			Highcharts.createElement('link', {
+				href: 'https://fonts.googleapis.com/css?family=Hepta+Slab:400,600',
+				rel: 'stylesheet',
+				type: 'text/css'
+			}, null, document.getElementsByTagName('head')[0]);
+			Highcharts.theme = {
+				colors: ['#7cb5ec', '#f7a35c', '#90ee7e', '#7798BF', '#aaeeee', '#ff0066', '#eeaaee', '#55BF3B', '#DF5353', '#7798BF', '#aaeeee'],
+			chart: {
+				backgroundColor: null,
+				style: {
+					fontFamily: 'Hepta Slab, serif'
+				}
+			},
+			title: {
+				style: {
+					fontSize: '16px',
+					fontWeight: 'bold',
+					textTransform: 'uppercase'
+				}
+			},
+			tooltip: {
+				borderWidth: 0,
+				backgroundColor: 'rgba(219,219,216,0.8)',
+				shadow: false
+			},
+			legend: {
+				itemStyle: {
+					fontWeight: 'bold',
+					fontSize: '13px'
+				}
+			},
+			xAxis: {
+				gridLineWidth: 1,
+				labels: {
+					style: {
+						fontSize: '12px'
+					}
+				}
+			},
+			yAxis: {
+				minorTickInterval: 'auto',
+				title: {
+					style: {
+						textTransform: 'uppercase'
+					}
+				},
+				labels: {
+					style: {
+						fontSize: '12px'
+					}
+				}
+			},
+			plotOptions: {
+				candlestick: {
+					lineColor: '#404048'
+				}
+			},
+			background2: '#F0F0EA'
+		};
+		function draw_charts(t_data) {
+			Highcharts.setOptions(Highcharts.theme);
+				Highcharts.chart('container', {
+					chart: {
+						type: 'line'
+					},
+					title: {
+						text: 'Statistik BPM'
+					},
+					subtitle: {
+						text: ''
+					},
+					xAxis: {
+						categories: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']
+					},
+					yAxis: {
+						title: {
+							text: 'BPM'
+						}
+					},
+					credits: {
+						enabled: false
+					},
+					plotOptions: {
+						line: {
+							dataLabels: {
+								enabled: true
+							},
+							enableMouseTracking: false
+						}
+					},
+					series: [{
+						name: 'Nilai',
+						data: t_data
+					}]
+				});
+			}
+		</script>
+	</body>
+</body>
